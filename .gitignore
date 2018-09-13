@@ -81,9 +81,3 @@ typings/
 # Serverless directories
 .serverless
 
-.gitignore
-.idea/
-index.js
-index.ts
-package.json
-tsconfig.json
