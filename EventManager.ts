@@ -22,71 +22,68 @@ export default class EventManager extends EventEmitter {
   }
 
   /**
+   * Get All events
+   */
+  public getEvents(): IEvent[] {
+    return Array.from(this.byId.values());
+  }
+
+  public getEventById(id: string): IEvent {
+    if (!this.byId.has(id)) {
+      throw new Error("Event not Found");
+    }
+    return this.byId.get(id) as IEvent;
+  }
+
+  /**
    * Add event
    * @param event
    */
-  public addEvent(event: Event): void {
+  public addEvent(event: IEvent): IEvent {
     this.byId.set(event.id, event);
     if (this.byTimestamp.has(event.timestamp)) {
       this.byTimestamp.set(event.timestamp, [...(this.byTimestamp.get(event.timestamp) as Event[]), event]);
     } else {
       this.byTimestamp.set(event.timestamp, [event]);
     }
-  }
-
-  // /**
-  //  * Has event by timestamp
-  //  * @param timestamp
-  //  * @return boolean
-  //  */
-  // public hasEventByTimestamp(timestamp: number): boolean {
-  //   return this.byTimestamp.has(timestamp);
-  // }
-
-  /**
-   * Get Event by timestamp
-   * @param timestamp
-   */
-  public getEventByTimestamp(timestamp: number): Event[] {
-    return this.byTimestamp.get(timestamp) as Event[];
+    return event;
   }
 
   /**
-   * Delete event by timestamp
-   * @param timestamp
+   * Update event
+   * @param event
    */
-  public deleteEventByTimestamp(timestamp: number): void {
-    this.byTimestamp.delete(timestamp);
+  public updateEvent(event: IEvent): IEvent {
+    if (!this.byId.has(event.id)) {
+      throw new Error("Event doesn't exist");
+    }
+    this.byId.set(event.id, event);
+    if (this.byTimestamp.has(event.timestamp)) {
+      // remove old event
+      this.byTimestamp.set(event.timestamp, [...(this.byTimestamp.get(event.timestamp) as Event[]).filter((e) => e.id !== event.id)]);
+      this.byTimestamp.set(event.timestamp, [...(this.byTimestamp.get(event.timestamp) as Event[]), event]);
+    } else {
+      this.byTimestamp.set(event.timestamp, [event]);
+    }
+    return event;
   }
 
-  // /**
-  //  * Get All events
-  //  */
-  // public getAllEvents(): Event[] {
-  //   return [...this.byId.values()];
-  // }
+  /**
+   * Delete event
+   * @param event
+   */
+  // TODO
+  public deleteEvent(event: Event) {
+    throw new Error("Not Implemented yet");
+  }
 
-  public deleteAll() {
+  /**
+   * Empty scheduler
+   */
+  public empty(): void {
     this.byId = new Map<string, Event>();
     this.byTimestamp = new Map<number, Event[]>();
   }
-
-  // TODO
-  public removeEvent(eventId: string): void {
-    this.emit(`event.remove.${eventId}`);
-    console.log(eventId);
-  }
-
-  // /**
-  //  * Empty scheduler
-  //  */
-  // public empty(): void {
-  //     this._eventStore.deleteAll();
-  // }
-
-  // public getEvents(): Event[] {
-  //     return this._eventStore.getAllEvents();
-  // }
 
   /**
    * Start Event Manager
@@ -124,6 +121,10 @@ export default class EventManager extends EventEmitter {
     }
   }
 
+  /**
+   * Map Events by id
+   * @param events
+   */
   private mapEventsById(events: IEvent[]): Map<any, IEvent> {
     const map = new Map();
     for (const event of events) {
@@ -132,15 +133,19 @@ export default class EventManager extends EventEmitter {
     return map;
   }
 
-  private _onExecute(event: Event) {
-    event.transport.publish();
-  }
-
+  /**
+   * Map events by timestamp
+   * @param events
+   */
   private mapEventsByTimestamp(events: IEvent[]) {
     const map = new Map();
     for (const event of events) {
       map.set(event.timestamp, event);
     }
     return map;
+  }
+
+  private async _onExecute(event: Event) {
+    await event.transport.publish();
   }
 }
