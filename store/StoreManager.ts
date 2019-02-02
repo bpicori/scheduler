@@ -1,5 +1,5 @@
-import { EventEmitter } from "events";
-import {Event, IEvent} from "../Event";
+import { EventEmitter } from 'events';
+import {Event, IEvent} from '../Event';
 
 export class StoreManager extends EventEmitter {
     constructor(configs: IConfigs) {

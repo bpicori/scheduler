@@ -1,17 +1,20 @@
-import { Event } from "./Event";
-import EventManager from "./EventManager";
-import {StoreManager} from "./store/StoreManager";
-import {Amqp} from "./transport/Amqp";
-import {Http} from "./transport/Http";
+import { Event } from './Event';
+import EventManager from './EventManager';
+import {StoreManager} from './store/StoreManager';
+import {Amqp} from './transport/Amqp';
+import {Http} from './transport/Http';
 
 async function main() {
 
-  const store = new StoreManager({filePath: ""});
+  const store = new StoreManager({filePath: ''});
   const scheduler = new EventManager(store);
   await scheduler.start();
   const now = Math.round(Date.now() / 1000) + 5;
-  const event = new Event({ timestamp: now, repeat: true, interval: 2, transport: new Amqp() });
+  const event = new Event({ name: 'event1', timestamp: now, repeat: true, interval: 3, transport: new Amqp() });
+  // const event2 = new Event({ name: 'event1', timestamp: now, repeat: false, interval: 3, transport: new Http() });
   scheduler.addEvent(event);
+  // scheduler.addEvent(event2);
+
 }
 
 main();

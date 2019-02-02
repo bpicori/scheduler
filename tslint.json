@@ -8,7 +8,10 @@
       "no-console": false,
       "variable-name": false,
       "no-shadowed-variable": false,
-      "max-line-length": false
+      "max-line-length": false,
+      "quotemark": {
+        "options": "single"
+      }
     },
     "rulesDirectory": []
 }
