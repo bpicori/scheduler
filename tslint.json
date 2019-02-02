@@ -8,6 +8,7 @@
       "no-console": false,
       "variable-name": false,
       "no-shadowed-variable": false
+      // "indent": [true, "spaces", 2]
     },
     "rulesDirectory": []
 }
