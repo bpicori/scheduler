@@ -1,7 +1,7 @@
 import { Event } from './Event';
 import EventManager from './EventManager';
 import {StoreEventsMongo} from './store/StoreEventsMongo';
-import {Amqp} from './transport/Amqp';
+// import {Amqp} from './transport/Amqp';
 import {Http} from './transport/Http';
 
 async function main() {
@@ -14,7 +14,9 @@ async function main() {
   await scheduler.sync();
   await scheduler.start();
   const now = Math.round(Date.now() / 1000) + 5;
-  const event = new Event({ name: 'event1', timestamp: now, repeat: true, interval: 3, transport: new Amqp() });
+  const event = new Event('event1', now, true, 3, new Http({
+    url: 'http://localhost:3000',
+  }));
   // const event2 = new Event({ name: 'event1', timestamp: now, repeat: false, interval: 3, transport: new Http() });
   scheduler.addEvent(event);
   // scheduler.addEvent(event2);

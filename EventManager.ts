@@ -1,8 +1,7 @@
-import { EventEmitter } from 'events';
-import { clearInterval } from 'timers';
-import {Status} from 'tslint/lib/runner';
+import {EventEmitter} from 'events';
+import {clearInterval} from 'timers';
 import {Event, IEvent, StatusEvent} from './Event';
-import { StoreEventsMongo } from './store/StoreEventsMongo';
+import {StoreEventsMongo} from './store/StoreEventsMongo';
 
 export default class EventManager extends EventEmitter {
   private _byId: Map<string, IEvent>;
@@ -10,7 +9,6 @@ export default class EventManager extends EventEmitter {
 
   private interval: any;
   private _eventStore: StoreEventsMongo;
-  private count: number;
 
   /**
    * Constructor
@@ -22,7 +20,6 @@ export default class EventManager extends EventEmitter {
     this._byId = new Map();
     this._byTimestamp = new Map();
     this.on('execute', this._onExecute);
-    this.count = 0;
   }
 
   get byId(): Map<string, IEvent> {
@@ -38,13 +35,13 @@ export default class EventManager extends EventEmitter {
 
   /**
    * Get Event by id
-   * @param id
+   * @param eventId
    */
-  public getEventById(id: string): IEvent {
-    if (!this._byId.has(id)) {
+  public getEventById(eventId: string): IEvent {
+    if (!this._byId.has(eventId)) {
       throw new Error('Event not Found');
     }
-    return this._byId.get(id) as IEvent;
+    return this._byId.get(eventId) as IEvent;
   }
 
   /**
@@ -52,14 +49,15 @@ export default class EventManager extends EventEmitter {
    * @param event
    */
   public addEvent(event: IEvent): IEvent {
-    this._byId.set(event.id, event);
+    this._byId.set(event.eventId, event);
     // if in this timestamp has other events
     if (this._byTimestamp.has(event.timestamp)) {
       const timestampMap = this._byTimestamp.get(event.timestamp) as Map<string, IEvent>;
-      timestampMap.set(event.id, event);
+      timestampMap.set(event.eventId, event);
     } else {
-      this._byTimestamp.set(event.timestamp, new Map([[event.id, event]]));
+      this._byTimestamp.set(event.timestamp, new Map([[event.eventId, event]]));
     }
+    this._eventStore.emit('addEvent', event);
     return event;
   }
 
@@ -68,15 +66,15 @@ export default class EventManager extends EventEmitter {
    * @param event
    */
   public updateEvent(event: IEvent): IEvent {
-    if (!this._byId.has(event.id)) {
+    if (!this._byId.has(event.eventId)) {
       throw new Error('Event doesn\'t exist');
     }
-    this._byId.set(event.id, event);
+    this._byId.set(event.eventId, event);
     if (this._byTimestamp.has(event.timestamp)) {
       const timestampMap = this._byTimestamp.get(event.timestamp) as Map<string, IEvent>;
-      timestampMap.set(event.id, event);
+      timestampMap.set(event.eventId, event);
     } else {
-      this._byTimestamp.set(event.timestamp, new Map([[event.id, event]]));
+      this._byTimestamp.set(event.timestamp, new Map([[event.eventId, event]]));
     }
     return event;
   }
@@ -86,12 +84,12 @@ export default class EventManager extends EventEmitter {
    * @param event
    */
   public deleteEvent(event: IEvent): boolean {
-    if (!this._byId.has(event.id)) {
+    if (!this._byId.has(event.eventId)) {
       throw new Error('Event not Found');
     }
-    this._byId.delete(event.id);
+    this._byId.delete(event.eventId);
     const timestampMap = this._byTimestamp.get(event.timestamp) as Map<string, IEvent>;
-    timestampMap.delete(event.id);
+    timestampMap.delete(event.eventId);
     // if timestamp map is empty
     if (!timestampMap.size) {
       this._byTimestamp.delete(event.timestamp);
@@ -138,9 +136,9 @@ export default class EventManager extends EventEmitter {
   private _interval(): void {
     const now = Math.round(Date.now() / 1000);
     console.log(`Now: ${now}`);
-    console.log(this._byId);
     // if has event
     if (this._byTimestamp.has(now)) {
+      const t = this._byTimestamp.get(now);
       for (const [id, event] of this._byTimestamp.get(now) as Map<string, IEvent>) {
         this.emit('execute', event);
         // if event is repeat
@@ -160,7 +158,7 @@ export default class EventManager extends EventEmitter {
   private mapEventsById(events: IEvent[]): Map<any, IEvent> {
     const map = new Map();
     for (const event of events) {
-      map.set(event.id, event);
+      map.set(event.eventId, Event.deserialize(event));
     }
     return map;
   }
@@ -172,16 +170,13 @@ export default class EventManager extends EventEmitter {
   private mapEventsByTimestamp(events: IEvent[]) {
     const map = new Map();
     for (const event of events) {
-      map.set(event.timestamp, event);
+      map.set(event.timestamp, Event.deserialize(event));
     }
     return map;
   }
 
   private async _onExecute(event: IEvent) {
     await event.transport.publish();
-    event.log = {
-      message: '',
-      status: StatusEvent.DONE,
-    };
+    event.status = StatusEvent.DONE;
   }
 }

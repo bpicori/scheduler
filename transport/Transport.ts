@@ -1,3 +1,12 @@
+import {AxiosRequestConfig} from 'axios';
+
+export enum TransportType {
+  HTTP = 'http',
+  AMQP = 'amqp',
+}
+
 export interface ITransport {
-    publish(): void;
+  type: TransportType;
+  publish(): void;
+  getConfigs(): AxiosRequestConfig;
 }

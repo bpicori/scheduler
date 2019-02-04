@@ -1,5 +1,7 @@
 import {v4} from 'uuid';
-import {ITransport} from './transport/Transport';
+import {Http} from './transport/Http';
+import {ITransport, TransportType} from './transport/Transport';
+import {TransportFactory} from './transport/TransportFactory';
 
 export enum StatusEvent {
   PENDING,
@@ -7,41 +9,45 @@ export enum StatusEvent {
   ERROR,
 }
 
-export interface ILog {
-  message: string;
-  status: StatusEvent;
-  error?: Error;
-}
-
 export class Event implements IEvent {
-  public id: string;
+
+  public static serialize(event: IEvent): any {
+    const transportConfig = event.transport.getConfigs();
+    return  { ...event, transport: transportConfig };
+  }
+
+  public static deserialize(event: any): IEvent {
+    const transport = new Http(event.transport);
+    return new Event(event.name, event.timestamp, event.repeat, event.interval, transport);
+  }
+
+  public eventId: string;
   public timestamp: number;
-  public repeat?: boolean;
+  public repeat: boolean;
   public interval?: number;
   public transport: ITransport;
   public name: string;
-  public log?: ILog;
+  public status: StatusEvent;
 
-  constructor(config: IEvent) {
-    this.id = v4();
-    this.name = config.name;
-    this.timestamp = config.timestamp;
-    this.repeat = config.repeat;
-    this.interval = config.interval;
-    this.transport = config.transport;
-    this.log = {
-      message: 'Not fired yet',
-      status: StatusEvent.PENDING,
-    };
+  constructor(name: string, timestamp: number, repeat: boolean, interval: number, transport: ITransport) {
+    this.eventId = v4();
+    this.name = name;
+    this.timestamp = timestamp;
+    this.repeat = repeat;
+    this.interval = interval;
+    this.transport = transport;
+    this.status = StatusEvent.PENDING;
   }
 }
 
 export interface IEvent {
+  eventId: string ;
   timestamp: number;
   name: string;
-  repeat?: boolean;
+  repeat: boolean;
   interval?: number;
   transport: ITransport;
+  status: StatusEvent;
   [key: string]: any;
-  log?: ILog;
+  // serialize(event: IEvent): any;
 }

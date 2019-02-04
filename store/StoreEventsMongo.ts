@@ -9,7 +9,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
   private db: Db | null;
   constructor(configs: IConfigs) {
     super();
-    this.client = new MongoClient(configs.mongoUrl);
+    this.client = new MongoClient(configs.mongoUrl, { useNewUrlParser: true });
     this.dbName = configs.dbName;
     this.db = null;
     this.on('addEvent', this.addEvent);
@@ -25,8 +25,15 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
       return this.db.collection('events').find({}).toArray();
     }
   }
-  // TODO
-  public addEvent(event: IEvent): void {
+
+  /**
+   * Add Event
+   * @param event
+   */
+  public async addEvent(event: IEvent): Promise<any> {
+    if (this.db) {
+      await this.db.collection('events').findOneAndUpdate({eventId: event.eventId},  {$set: Event.serialize(event)}, { upsert: true });
+    }
   }
   // TODO
   public deleteEvent(event: IEvent): void {
