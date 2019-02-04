@@ -1,9 +1,8 @@
-import { assert, expect } from 'chai';
+import { assert} from 'chai';
 import 'mocha';
-import { spy } from 'sinon';
 import {Event} from '../Event';
 import EventManager from '../EventManager';
-import {StoreManager} from '../store/StoreManager';
+import {StoreEventsMongo} from '../store/StoreEventsMongo';
 import {Http} from '../transport/Http';
 const delay = (time: number) => (result: any) => new Promise((resolve) => setTimeout(() => resolve(result), time));
 
@@ -15,7 +14,7 @@ function generateRandomEvents(numberOfEvents: number, scheduler: EventManager): 
 }
 
 describe('Event Manager Test', () => {
-    const store = new StoreManager({ filePath: '' });
+    const store = new StoreEventsMongo({ mongoUrl: 'mongodb://localhost:27017', dbName: 'events' });
     const scheduler = new EventManager(store);
     beforeEach(async () => {
         scheduler.empty();

@@ -1,4 +1,4 @@
-import {ITransport} from "./Transport";
+import {ITransport} from './Transport';
 // TODO
 export class Http implements ITransport {
 

@@ -2,21 +2,21 @@ import { EventEmitter } from 'events';
 import { clearInterval } from 'timers';
 import {Status} from 'tslint/lib/runner';
 import {Event, IEvent, StatusEvent} from './Event';
-import { StoreManager } from './store/StoreManager';
+import { StoreEventsMongo } from './store/StoreEventsMongo';
 
 export default class EventManager extends EventEmitter {
   private _byId: Map<string, IEvent>;
   private _byTimestamp: Map<number, Map<string, IEvent>>;
 
   private interval: any;
-  private _eventStore: StoreManager;
+  private _eventStore: StoreEventsMongo;
   private count: number;
 
   /**
    * Constructor
    * @param eventStore
    */
-  constructor(eventStore: StoreManager) {
+  constructor(eventStore: StoreEventsMongo) {
     super();
     this._eventStore = eventStore;
     this._byId = new Map();
@@ -28,9 +28,6 @@ export default class EventManager extends EventEmitter {
   get byId(): Map<string, IEvent> {
     return this._byId;
   }
-  // get byTimestamp(): Map<number, IEvent[]> {
-  //   return this._byTimestamp;
-  // }
 
   /**
    * Get All events
@@ -111,12 +108,19 @@ export default class EventManager extends EventEmitter {
   }
 
   /**
-   * Start Event Manager
+   * Sync events with eventStore
    */
-  public async start() {
+  public async sync() {
+    await this._eventStore.connect();
     const events = await this._eventStore.getAllEvents();
     this._byId = this.mapEventsById(events);
     this._byTimestamp = this.mapEventsByTimestamp(events);
+  }
+
+  /**
+   * Start Event Manager
+   */
+  public async start() {
     this.interval = setInterval(this._interval.bind(this), 1000);
   }
 

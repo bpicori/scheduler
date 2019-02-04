@@ -1,13 +1,17 @@
 import { Event } from './Event';
 import EventManager from './EventManager';
-import {StoreManager} from './store/StoreManager';
+import {StoreEventsMongo} from './store/StoreEventsMongo';
 import {Amqp} from './transport/Amqp';
 import {Http} from './transport/Http';
 
 async function main() {
 
-  const store = new StoreManager({filePath: ''});
+  const store = new StoreEventsMongo({
+    dbName: 'scheduler',
+    mongoUrl: 'mongodb://localhost:27017',
+  });
   const scheduler = new EventManager(store);
+  await scheduler.sync();
   await scheduler.start();
   const now = Math.round(Date.now() / 1000) + 5;
   const event = new Event({ name: 'event1', timestamp: now, repeat: true, interval: 3, transport: new Amqp() });
