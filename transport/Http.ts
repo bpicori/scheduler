@@ -11,7 +11,11 @@ export class Http implements ITransport {
   }
 
   public async publish(): Promise<any> {
-      return axios(this.requestParams);
+    try {
+      const res = await axios(this.requestParams);
+    } catch (e) {
+      return;
+    }
   }
 
   public getConfigs(): AxiosRequestConfig {

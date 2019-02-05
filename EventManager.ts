@@ -47,8 +47,9 @@ export default class EventManager extends EventEmitter {
   /**
    * Add event
    * @param event
+   * @param emitToStore
    */
-  public addEvent(event: IEvent): IEvent {
+  public addEvent(event: IEvent, emitToStore = true): IEvent {
     this._byId.set(event.eventId, event);
     // if in this timestamp has other events
     if (this._byTimestamp.has(event.timestamp)) {
@@ -57,15 +58,18 @@ export default class EventManager extends EventEmitter {
     } else {
       this._byTimestamp.set(event.timestamp, new Map([[event.eventId, event]]));
     }
-    this._eventStore.emit('addEvent', event);
+    if (emitToStore) {
+      this._eventStore.emit('addEvent', event);
+    }
     return event;
   }
 
   /**
    * Update event
    * @param event
+   * @param emitToStore
    */
-  public updateEvent(event: IEvent): IEvent {
+  public updateEvent(event: IEvent, emitToStore = true): IEvent {
     if (!this._byId.has(event.eventId)) {
       throw new Error('Event doesn\'t exist');
     }
@@ -76,14 +80,18 @@ export default class EventManager extends EventEmitter {
     } else {
       this._byTimestamp.set(event.timestamp, new Map([[event.eventId, event]]));
     }
+    if (emitToStore) {
+      this._eventStore.emit('updateEvent', event);
+    }
     return event;
   }
 
   /**
    * Delete event
    * @param event
+   * @param emitToStore
    */
-  public deleteEvent(event: IEvent): boolean {
+  public deleteEvent(event: IEvent, emitToStore = true): boolean {
     if (!this._byId.has(event.eventId)) {
       throw new Error('Event not Found');
     }
@@ -93,6 +101,9 @@ export default class EventManager extends EventEmitter {
     // if timestamp map is empty
     if (!timestampMap.size) {
       this._byTimestamp.delete(event.timestamp);
+    }
+    if (emitToStore) {
+      this._eventStore.emit('deleteEvent');
     }
     return true;
   }
@@ -111,8 +122,13 @@ export default class EventManager extends EventEmitter {
   public async sync() {
     await this._eventStore.connect();
     const events = await this._eventStore.getAllEvents();
-    this._byId = this.mapEventsById(events);
-    this._byTimestamp = this.mapEventsByTimestamp(events);
+    const now = Math.round(Date.now() / 1000);
+    for (const event of events) {
+      if (event.repeat) {
+        event.timestamp = now + event.interval;
+      }
+      this.addEvent(Event.deserialize(event), false);
+    }
   }
 
   /**
@@ -138,43 +154,17 @@ export default class EventManager extends EventEmitter {
     console.log(`Now: ${now}`);
     // if has event
     if (this._byTimestamp.has(now)) {
-      const t = this._byTimestamp.get(now);
       for (const [id, event] of this._byTimestamp.get(now) as Map<string, IEvent>) {
         this.emit('execute', event);
         // if event is repeat
         if (event.repeat && event.interval) {
           event.timestamp = now + event.interval;
-          this.addEvent(event);
+          this.updateEvent(event);
         }
       }
       this._byTimestamp.delete(now);
     }
   }
-
-  /**
-   * Map Events by id
-   * @param events
-   */
-  private mapEventsById(events: IEvent[]): Map<any, IEvent> {
-    const map = new Map();
-    for (const event of events) {
-      map.set(event.eventId, Event.deserialize(event));
-    }
-    return map;
-  }
-
-  /**
-   * Map events by timestamp
-   * @param events
-   */
-  private mapEventsByTimestamp(events: IEvent[]) {
-    const map = new Map();
-    for (const event of events) {
-      map.set(event.timestamp, Event.deserialize(event));
-    }
-    return map;
-  }
-
   private async _onExecute(event: IEvent) {
     await event.transport.publish();
     event.status = StatusEvent.DONE;
