@@ -17,3 +17,4 @@ package-lock.json
 .nyc_output
 coverage
 api/
+bin
