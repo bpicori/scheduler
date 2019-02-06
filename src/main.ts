@@ -13,7 +13,6 @@ async function main() {
   });
   const scheduler = new EventManager(store);
   const server = new Server('0.0.0.0', 3000, scheduler);
-  await scheduler.sync();
   await scheduler.start();
   await server.start();
   // const now = Math.round(Date.now() / 1000) + 5;

@@ -4,6 +4,10 @@ import {StoreEventsMongo} from '../store/StoreEventsMongo';
 import {Event, IEvent, StatusEvent} from './Event';
 
 export default class EventManager extends EventEmitter {
+
+  get byId(): Map<string, IEvent> {
+    return this._byId;
+  }
   private _byId: Map<string, IEvent>;
   private _byTimestamp: Map<number, Map<string, IEvent>>;
 
@@ -19,11 +23,8 @@ export default class EventManager extends EventEmitter {
     this._eventStore = eventStore;
     this._byId = new Map();
     this._byTimestamp = new Map();
-    this.on('execute', this._onExecute);
-  }
-
-  get byId(): Map<string, IEvent> {
-    return this._byId;
+    this.on('executeEvent', this._onExecute);
+    this._eventStore.on('syncEventManager', this.sync.bind(this));
   }
 
   /**
@@ -129,8 +130,12 @@ export default class EventManager extends EventEmitter {
   /**
    * Sync events with eventStore
    */
-  public async sync() {
-    await this._eventStore.connect();
+  public async sync(connect: boolean = true) {
+    if (connect) {
+      await this._eventStore.connect();
+    }
+    this._byId = new Map();
+    this._byTimestamp = new Map();
     const events = await this._eventStore.getAllEvents();
     const now = Math.round(Date.now() / 1000);
     for (const event of events) {
@@ -145,6 +150,7 @@ export default class EventManager extends EventEmitter {
    * Start Event Manager
    */
   public async start() {
+    await this.sync();
     this.interval = setInterval(this._interval.bind(this), 1000);
   }
 
@@ -156,6 +162,21 @@ export default class EventManager extends EventEmitter {
   }
 
   /**
+   * Resync event manager
+   * @private
+   */
+  private async _resync() {
+    const events = await this._eventStore.getAllEvents();
+    const now = Math.round(Date.now() / 1000);
+    for (const event of events) {
+      if (event.repeat) {
+        event.timestamp = now + event.interval;
+      }
+      this.addEvent(Event.deserialize(event), false);
+    }
+  }
+
+  /**
    * Interval every seconds and check if there is an event to emit
    * @private
    */
@@ -164,7 +185,7 @@ export default class EventManager extends EventEmitter {
     // if has event
     if (this._byTimestamp.has(now)) {
       for (const [id, event] of this._byTimestamp.get(now) as Map<string, IEvent>) {
-        this.emit('execute', event);
+        this.emit('executeEvent', event);
         // if event is repeat
         if (event.repeat && event.interval) {
           event.timestamp = now + event.interval;

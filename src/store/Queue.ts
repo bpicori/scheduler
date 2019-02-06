@@ -36,7 +36,7 @@ export class Queue implements IterableIterator<any> {
    * Check queue is empty
    */
   public isEmpty() {
-    return !this.dataStore.length;
+    return this.dataStore.length === 0;
   }
 
   /**
@@ -44,6 +44,15 @@ export class Queue implements IterableIterator<any> {
    */
   public isFull() {
     return this.dataStore.length === this.maxSize;
+  }
+
+  /**
+   * Get first element and removes it from queue
+   */
+  public poll() {
+    const element = this.peek();
+    this.dequeue();
+    return element;
   }
 
   public [Symbol.iterator](): IterableIterator<any> {
