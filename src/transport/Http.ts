@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { ITransport, TransportType } from './Transport';
+import { ITransport, ITransportConfig, TransportType } from './Transport';
 
 export class Http implements ITransport {
   public type: TransportType.HTTP;
@@ -23,6 +23,6 @@ export class Http implements ITransport {
   }
 
   public getConfigs(): AxiosRequestConfig {
-    return { ...this.requestParams };
+    return this.requestParams;
   }
 }

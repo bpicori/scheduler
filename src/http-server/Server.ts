@@ -1,18 +1,25 @@
 /**
  * Created by bpicori on 19-02-05
  */
-import Hapi from 'hapi';
+import * as Hapi from 'hapi';
 import EventManager from '../event/EventManager';
 import { EventController } from './EventController';
 
 export class Server {
   private server: Hapi.Server;
-  private controller: EventController;
+  private readonly controller: EventController;
 
   constructor(host: string, port: number, scheduler: EventManager) {
     this.server = new Hapi.Server({
       host,
       port,
+      routes: {
+        cors: {
+          additionalExposedHeaders: ['jwt'],
+          additionalHeaders: ['jwt'],
+          origin: ['*'],
+        },
+      },
     });
     this.controller = new EventController(scheduler);
   }

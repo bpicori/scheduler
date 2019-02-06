@@ -1,7 +1,7 @@
-import {EventEmitter} from 'events';
-import {clearInterval} from 'timers';
-import {StoreEventsMongo} from '../store/StoreEventsMongo';
-import {Event, IEvent, StatusEvent} from './Event';
+import { EventEmitter } from 'events';
+import { clearInterval } from 'timers';
+import { StoreEventsMongo } from '../store/StoreEventsMongo';
+import { Event, IEvent, StatusEvent } from './Event';
 
 export default class EventManager extends EventEmitter {
 
@@ -23,7 +23,7 @@ export default class EventManager extends EventEmitter {
     this._eventStore = eventStore;
     this._byId = new Map();
     this._byTimestamp = new Map();
-    this.on('executeEvent', this._onExecute);
+    this.on('executeEvent', this.executeEvent);
     this._eventStore.on('syncEventManager', this.sync.bind(this));
   }
 
@@ -151,7 +151,7 @@ export default class EventManager extends EventEmitter {
    */
   public async start() {
     await this.sync();
-    this.interval = setInterval(this._interval.bind(this), 1000);
+    this.interval = setInterval(this.eventChecker.bind(this), 1000);
   }
 
   /**
@@ -162,25 +162,10 @@ export default class EventManager extends EventEmitter {
   }
 
   /**
-   * Resync event manager
-   * @private
-   */
-  private async _resync() {
-    const events = await this._eventStore.getAllEvents();
-    const now = Math.round(Date.now() / 1000);
-    for (const event of events) {
-      if (event.repeat) {
-        event.timestamp = now + event.interval;
-      }
-      this.addEvent(Event.deserialize(event), false);
-    }
-  }
-
-  /**
    * Interval every seconds and check if there is an event to emit
    * @private
    */
-  private _interval(): void {
+  private eventChecker(): void {
     const now = Math.round(Date.now() / 1000);
     // if has event
     if (this._byTimestamp.has(now)) {
@@ -195,7 +180,7 @@ export default class EventManager extends EventEmitter {
       this._byTimestamp.delete(now);
     }
   }
-  private async _onExecute(event: IEvent) {
+  private async executeEvent(event: IEvent) {
     console.log(`Fired event: ${event.name}`);
     await event.transport.publish();
   }

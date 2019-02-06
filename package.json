@@ -15,6 +15,7 @@
     "schedule"
   ],
   "dependencies": {
+    "amqplib": "^0.5.3",
     "axios": "^0.18.0",
     "hapi": "^18.1.0",
     "mongodb": "^3.1.13",
@@ -23,6 +24,7 @@
   "author": "bpicori",
   "license": "ISC",
   "devDependencies": {
+    "@types/amqplib": "^0.5.9",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.1.4",
     "@types/hapi": "^18.0.0",
@@ -36,6 +38,7 @@
     "sinon": "^6.3.4",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.11.1",
     "typescript": "^3.0.3"
   }
 }
