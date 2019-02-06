@@ -4,15 +4,19 @@
   "description": "Schedule app",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --require ts-node/register test/**/*.ts"
+    "start": "npm run build && node --inspect=0.0.0.0:5858 ./bin/src/main.js",
+    "dev": "nodemon",
+    "build": "./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "build:watch": "./node_modules/typescript/bin/tsc -w -p tsconfig.json",
+    "test": "./node_modules/mocha/bin/mocha --require ts-node/register test/**/*.ts",
+    "clean": "./node_modules/rimraf/bin.js bin"
   },
   "keywords": [
     "schedule"
   ],
   "dependencies": {
-    "@types/mongodb": "^3.1.19",
-    "@types/uuid": "^3.4.4",
     "axios": "^0.18.0",
+    "hapi": "^18.1.0",
     "mongodb": "^3.1.13",
     "uuid": "^3.3.2"
   },
@@ -21,9 +25,12 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.1.4",
+    "@types/hapi": "^18.0.0",
     "@types/mocha": "^5.2.5",
+    "@types/mongodb": "^3.1.19",
     "@types/node": "^10.9.4",
     "@types/sinon": "^5.0.2",
+    "@types/uuid": "^3.4.4",
     "chai": "^4.1.2",
     "mocha": "^5.2.0",
     "sinon": "^6.3.4",

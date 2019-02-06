@@ -1,7 +1,7 @@
 import {EventEmitter} from 'events';
 import {clearInterval} from 'timers';
+import {StoreEventsMongo} from '../store/StoreEventsMongo';
 import {Event, IEvent, StatusEvent} from './Event';
-import {StoreEventsMongo} from './store/StoreEventsMongo';
 
 export default class EventManager extends EventEmitter {
   private _byId: Map<string, IEvent>;
@@ -50,6 +50,11 @@ export default class EventManager extends EventEmitter {
    * @param emitToStore
    */
   public addEvent(event: IEvent, emitToStore = true): IEvent {
+    // if event is repeat
+    if (event.repeat && event.interval) {
+      const now = Math.round(Date.now() / 1000);
+      event.timestamp = now + event.interval;
+    }
     this._byId.set(event.eventId, event);
     // if in this timestamp has other events
     if (this._byTimestamp.has(event.timestamp)) {
@@ -72,6 +77,11 @@ export default class EventManager extends EventEmitter {
   public updateEvent(event: IEvent, emitToStore = true): IEvent {
     if (!this._byId.has(event.eventId)) {
       throw new Error('Event doesn\'t exist');
+    }
+    // check if event is repeat
+    if (event.repeat && event.interval) {
+      const now = Math.round(Date.now() / 1000);
+      event.timestamp = now + event.interval;
     }
     this._byId.set(event.eventId, event);
     if (this._byTimestamp.has(event.timestamp)) {
@@ -151,7 +161,6 @@ export default class EventManager extends EventEmitter {
    */
   private _interval(): void {
     const now = Math.round(Date.now() / 1000);
-    console.log(`Now: ${now}`);
     // if has event
     if (this._byTimestamp.has(now)) {
       for (const [id, event] of this._byTimestamp.get(now) as Map<string, IEvent>) {
@@ -159,14 +168,14 @@ export default class EventManager extends EventEmitter {
         // if event is repeat
         if (event.repeat && event.interval) {
           event.timestamp = now + event.interval;
-          this.updateEvent(event);
+          this.updateEvent(event, false);
         }
       }
       this._byTimestamp.delete(now);
     }
   }
   private async _onExecute(event: IEvent) {
+    console.log(`Fired event: ${event.name}`);
     await event.transport.publish();
-    event.status = StatusEvent.DONE;
   }
 }

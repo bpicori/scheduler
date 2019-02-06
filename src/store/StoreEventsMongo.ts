@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import {Db, MongoClient} from 'mongodb';
-import { Event, IEvent } from '../Event';
+import { Event, IEvent } from '../event/Event';
 import {IStore} from './IStore';
 import {Queue} from './Queue';
 
@@ -11,20 +11,20 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
   private commandQueue: Queue;
   constructor(configs: IConfigs) {
     super();
-    this.client = new MongoClient(configs.mongoUrl, { useNewUrlParser: true });
+    this.client = new MongoClient(configs.mongoUrl, { useNewUrlParser: true, poolSize: 10, reconnectTries: Number.MAX_VALUE, reconnectInterval: 1000 });
     this.dbName = configs.dbName;
     this.db = null;
     this.on('addEvent', this.addEvent);
     this.on('updateEvent', this.updateEvent);
     this.on('deleteEvent', this.deleteEvent);
-    this.commandQueue = new Queue();
+    this.commandQueue = new Queue(Number.MAX_VALUE);
   }
 
   /**
    * Find all events
    */
   public async getAllEvents(): Promise<any> {
-    if (this.db) {
+    if (this.db && this.client.isConnected()) {
       return this.db.collection('events').find({}).toArray();
     } else {
       return [];
@@ -36,10 +36,10 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
    * @param event
    */
   public async addEvent(event: IEvent): Promise<any> {
-    this.commandQueue.push({ command: 'addEvent', event });
-    if (this.db) {
+    if (this.db && this.client.isConnected()) {
       await this.db.collection('events').insertOne(Event.serialize(event));
     } else {
+      this.commandQueue.enqueue({ command: 'addEvent', event });
     }
   }
 
@@ -48,39 +48,45 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
    * @param event
    */
   public async deleteEvent(event: IEvent): Promise<any> {
-    if (this.db) {
+    if (this.db && this.client.isConnected()) {
       await this.db.collection('events').deleteOne({ eventId: event.eventId });
     } else {
-      this.commandQueue.push({ command: 'deleteEvent', event });
+      this.commandQueue.enqueue({ command: 'deleteEvent', event });
     }
   }
 
   /**
-   * Delete Event
+   * Update Event
    * @param event
    */
   public async updateEvent(event: IEvent): Promise<any> {
-    if (this.db) {
+    if (this.db && this.client.isConnected()) {
       await this.db.collection('events').findOneAndUpdate({eventId: event.eventId},  {$set: Event.serialize(event)});
     } else {
-      this.commandQueue.push({ command: 'updateEvent', event });
+      this.commandQueue.enqueue({ command: 'updateEvent', event });
     }
   }
 
-  public async connect(): Promise<Db> {
+  public async connect(): Promise<Db|null> {
+
     try {
       await this.client.connect();
       this.db = this.client.db(this.dbName);
+      this.db.on('reconnect', () => {
+        console.log('Mongodb Connected');
+      });
+      this.db.on('close', () => {
+        console.warn('Mongodb Disconnected');
+      });
       return this.db;
-    } catch (error) {
-      console.log(`Cant't connect with mongodb. Error: ${error.message}`);
-      await this._delay(5000);
+    } catch (err) {
+      await this._delay(1000);
       return this.connect();
     }
   }
 
-  private _delay<T>(millis: number, value?: T): Promise<T> {
-    return new Promise((resolve) => setTimeout(resolve(value), 100));
+  private _delay<T>(millis: number): Promise<any> {
+    return new Promise((resolve) => setTimeout(resolve(), millis));
   }
 }
 // TODO

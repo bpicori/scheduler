@@ -1,4 +1,4 @@
-import {IEvent} from '../Event';
+import {IEvent} from '../event/Event';
 
 /**
  * Created by bpicori on 19-02-04

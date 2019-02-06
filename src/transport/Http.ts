@@ -1,5 +1,5 @@
-import axios, {AxiosRequestConfig} from 'axios';
-import {ITransport, TransportType} from './Transport';
+import axios, { AxiosRequestConfig } from 'axios';
+import { ITransport, TransportType } from './Transport';
 
 export class Http implements ITransport {
   public type: TransportType.HTTP;
@@ -12,9 +12,13 @@ export class Http implements ITransport {
 
   public async publish(): Promise<any> {
     try {
-      const res = await axios(this.requestParams);
+      const { data, status } = await axios(this.requestParams);
+      return { data, status };
     } catch (e) {
-      return;
+      if (e.response) {
+        return { message: e.message, data: e.response.data, status: e.response.status };
+      }
+      return { message: e.message, code: e.code };
     }
   }
 

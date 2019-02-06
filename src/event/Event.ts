@@ -1,18 +1,19 @@
 import { v4 } from 'uuid';
-import { ITransport } from './transport/Transport';
-import { TransportFactory } from './transport/TransportFactory';
+import {Queue} from '../store/Queue';
+import { ITransport } from '../transport/Transport';
+import { TransportFactory } from '../transport/TransportFactory';
 
 export enum StatusEvent {
-  PENDING,
-  DONE,
-  ERROR,
+  PENDING = 'PENDING',
+  DONE = 'DONE',
+  ERROR = 'ERROR',
 }
 
 export class Event implements IEvent {
-
   public static serialize(event: IEvent): any {
     const transportConfig = event.transport.getConfigs();
-    return  { ...event, transportConfig, transportType: event.transport.type };
+    const transportType = event.transport.type;
+    return { ...event, transportConfig, transportType };
   }
 
   public static deserialize(event: any): IEvent {
@@ -26,7 +27,7 @@ export class Event implements IEvent {
   public interval: number;
   public transport: ITransport;
   public name: string;
-  public status: StatusEvent;
+  public log: Queue;
 
   constructor(name: string, timestamp: number, repeat: boolean, interval: number, transport: ITransport) {
     this.eventId = v4();
@@ -35,7 +36,7 @@ export class Event implements IEvent {
     this.repeat = repeat;
     this.interval = interval;
     this.transport = transport;
-    this.status = StatusEvent.PENDING;
+    this.log = new Queue(10);
   }
 }
 
@@ -44,8 +45,7 @@ export interface IEvent {
   timestamp: number;
   name: string;
   repeat: boolean;
-  interval?: number;
+  interval: number;
   transport: ITransport;
-  status: StatusEvent;
-  [key: string]: any;
+  log: Queue;
 }

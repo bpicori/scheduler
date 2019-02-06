@@ -1,21 +1,21 @@
-import { assert} from 'chai';
-import 'mocha';
-import {Event} from '../src/event/Event';
-import EventManager from '../src/event/EventManager';
-import {StoreEventsMongo} from '../src/store/StoreEventsMongo';
-import {Http} from '../src/transport/Http';
-const delay = (time: number) => (result: any) => new Promise((resolve) => setTimeout(() => resolve(result), time));
-
-function generateRandomEvents(numberOfEvents: number, scheduler: EventManager): void {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+require("mocha");
+const EventManager_1 = __importDefault(require("../src/event/EventManager"));
+const StoreEventsMongo_1 = require("../src/store/StoreEventsMongo");
+const delay = (time) => (result) => new Promise((resolve) => setTimeout(() => resolve(result), time));
+function generateRandomEvents(numberOfEvents, scheduler) {
     const now = Math.round(Date.now() / 1000);
     for (let i = 1; i <= numberOfEvents; i++) {
         // scheduler.addEvent(new Event(`event${i}`, now + i, false, 0,  new Http()));
     }
 }
-
 describe('Event Manager Test', () => {
-    const store = new StoreEventsMongo({ mongoUrl: 'mongodb://localhost:27017', dbName: 'events' });
-    const scheduler = new EventManager(store);
+    const store = new StoreEventsMongo_1.StoreEventsMongo({ mongoUrl: 'mongodb://localhost:27017', dbName: 'events' });
+    const scheduler = new EventManager_1.default(store);
     beforeEach(async () => {
         scheduler.empty();
         scheduler.stop();
@@ -77,3 +77,4 @@ describe('Event Manager Test', () => {
     //     expect(scheduler.getEvents()).to.have.length(0);
     // });
 });
+//# sourceMappingURL=index.js.map
