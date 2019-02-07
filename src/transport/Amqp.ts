@@ -1,4 +1,4 @@
-import * as Amqplib from 'amqplib';
+import { ConnectionsAmqp } from './ConnectionsAmqp';
 import { ITransport, TransportType } from './Transport';
 
 export class Amqp implements ITransport {
@@ -10,11 +10,10 @@ export class Amqp implements ITransport {
     this.amqpConfigs = configs;
   }
   public async publish(): Promise<any> {
-    const conn = await Amqplib.connect(this.amqpConfigs.rabbitUri);
+    const conn = await ConnectionsAmqp.getConnection(this.amqpConfigs.rabbitUri);
     const channel = await conn.createChannel();
     const content = Buffer.from(JSON.stringify(this.amqpConfigs.payload));
     await channel.publish(this.amqpConfigs.exchange, this.amqpConfigs.routingKey, content);
-    await conn.close();
   }
 
   public getConfigs(): IAmqpConfigs {
