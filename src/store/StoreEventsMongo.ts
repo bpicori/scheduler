@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
-import {Db, MongoClient} from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 import { Event, IEvent } from '../event/Event';
-import {IStore} from './IStore';
-import {Queue} from './Queue';
+import { IStore } from './IStore';
+import { Queue } from './Queue';
 
 export class StoreEventsMongo extends EventEmitter implements IStore {
   private readonly client: MongoClient;
@@ -28,9 +28,9 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
   public async getAllEvents(): Promise<any> {
     if (this.db && this.client.isConnected()) {
       return this.db.collection('events').find({}).toArray();
-    } else {
-      return [];
     }
+    return [];
+
   }
 
   /**
@@ -41,7 +41,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
     if (this.db && this.client.isConnected()) {
       await this.db.collection('events').insertOne(Event.serialize(event));
     } else {
-      this.commandQueue.enqueue({ command: 'addEvent', event });
+      this.commandQueue.enqueue({ event, command: 'addEvent' });
     }
   }
 
@@ -53,7 +53,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
     if (this.db && this.client.isConnected()) {
       await this.db.collection('events').deleteOne({ eventId: event.eventId });
     } else {
-      this.commandQueue.enqueue({ command: 'deleteEvent', event });
+      this.commandQueue.enqueue({ event, command: 'deleteEvent' });
     }
   }
 
@@ -63,18 +63,18 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
    */
   public async updateEvent(event: IEvent): Promise<any> {
     if (this.db && this.client.isConnected()) {
-      await this.db.collection('events').findOneAndUpdate({eventId: event.eventId},  {$set: Event.serialize(event)});
+      await this.db.collection('events').findOneAndUpdate({ eventId: event.eventId },  { $set: Event.serialize(event) });
     } else {
-      this.commandQueue.enqueue({ command: 'updateEvent', event });
+      this.commandQueue.enqueue({ event, command: 'updateEvent' });
     }
   }
 
   public command(command: string, event: IEvent) {
     if (command === 'addEvent') {
       return this.addEvent(event);
-    } else if (command === 'updateEvent') {
+    }  if (command === 'updateEvent') {
       return this.updateEvent(event);
-    } else if (command === 'deleteEvent') {
+    }  if (command === 'deleteEvent') {
       return this.deleteEvent(event);
     }
   }
@@ -116,11 +116,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
     console.log('Mongodb Reconnected');
   }
 
-  private _delay(millis: number): Promise<any> {
-    return new Promise((resolve) => setTimeout(resolve, millis));
-  }
 }
-// TODO
 interface IConfigs {
   mongoUrl: string;
   dbName: string;
