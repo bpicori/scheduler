@@ -1,8 +1,8 @@
 {
-  "name": "scheduler",
-  "version": "0.0.1",
-  "description": "Schedule app",
-  "main": "index.js",
+  "name": "monx-scheduler",
+  "version": "0.0.3",
+  "description": "Scheduler Package",
+  "main": "./lib/main.js",
   "scripts": {
     "start": "npm run build && node --inspect=0.0.0.0:5858 ./bin/src/main.js",
     "dev": "nodemon",
@@ -12,7 +12,7 @@
     "clean": "./node_modules/rimraf/bin.js bin"
   },
   "keywords": [
-    "schedule"
+    "scheduler"
   ],
   "dependencies": {
     "amqplib": "^0.5.3",

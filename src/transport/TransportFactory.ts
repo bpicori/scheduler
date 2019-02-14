@@ -10,7 +10,8 @@ export class TransportFactory {
   public static getTransport(type: string, config: IAmqpConfigs | AxiosRequestConfig): ITransport {
     if (type === TransportType.HTTP) {
       return new Http(config as AxiosRequestConfig);
-    }  if (type === TransportType.AMQP) {
+    }
+    if (type === TransportType.AMQP) {
       return new Amqp(config as IAmqpConfigs);
     }
     throw new Error(' Type not found');

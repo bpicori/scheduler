@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import {Queue} from '../store/Queue';
+import { Queue } from '../store/Queue';
 import { ITransport } from '../transport/Transport';
 import { TransportFactory } from '../transport/TransportFactory';
 
@@ -27,7 +27,7 @@ export class Event implements IEvent {
   public interval: number;
   public transport: ITransport;
   public name: string;
-  public log: Queue;
+  public log: Queue<any>;
 
   constructor(name: string, timestamp: number, repeat: boolean, interval: number, transport: ITransport) {
     this.eventId = v4();
@@ -47,5 +47,5 @@ export interface IEvent {
   repeat: boolean;
   interval: number;
   transport: ITransport;
-  log: Queue;
+  log: Queue<any>;
 }

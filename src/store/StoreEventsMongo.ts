@@ -8,7 +8,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
   private readonly client: MongoClient;
   private readonly dbName: string;
   private db: Db | null;
-  private commandQueue: Queue;
+  private commandQueue: Queue<any>;
   private firstConnection: boolean;
   constructor(configs: IConfigs) {
     super();

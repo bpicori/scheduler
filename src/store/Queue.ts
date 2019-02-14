@@ -2,8 +2,8 @@
  * Created by bpicori on 19-02-05
  */
 
-export class Queue implements IterableIterator<any> {
-  private readonly dataStore: any[];
+export class Queue<T> implements IterableIterator<T> {
+  private readonly dataStore: T[];
   private pointer = 0;
   private readonly maxSize: number;
   constructor(maxSize: number) {
@@ -14,7 +14,7 @@ export class Queue implements IterableIterator<any> {
   /**
    * Adds element to queue
    */
-  public enqueue(element: any) {
+  public enqueue(element: T) {
     this.dataStore.push(element);
   }
 
@@ -55,23 +55,24 @@ export class Queue implements IterableIterator<any> {
     return element;
   }
 
-  public [Symbol.iterator](): IterableIterator<any> {
+  // tslint:disable-next-line:function-name
+  public [Symbol.iterator](): IterableIterator<T> {
     return this;
   }
 
-  public next(value?: any): IteratorResult<any> {
+  public next(value?: T): IteratorResult<T> {
     if (this.pointer < this.dataStore.length) {
       return {
         done: false,
-        value: this.dataStore[this.pointer++],
-      };
-    } else {
-      return {
-        done: true,
-        // @ts-ignore
-        value: null,
+        value: this.dataStore[this.pointer += 1],
       };
     }
+    return {
+      done: true,
+        // @ts-ignore
+      value: null,
+    };
+
   }
 
 }
