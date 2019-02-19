@@ -2,7 +2,8 @@
  * Created by bpicori on 19-02-05
  */
 import * as Hapi from 'hapi';
-import EventManager from '../event/EventManager';
+import { EventManager } from '../event/EventManager';
+import  Logger from '../Logger';
 import { EventController } from './EventController';
 
 export class Server {
@@ -13,13 +14,6 @@ export class Server {
     this.server = new Hapi.Server({
       host,
       port,
-      routes: {
-        cors: {
-          additionalExposedHeaders: ['jwt'],
-          additionalHeaders: ['jwt'],
-          origin: ['*'],
-        },
-      },
     });
     this.controller = new EventController(scheduler);
   }
@@ -28,9 +22,9 @@ export class Server {
     try {
       await this.routes();
       await this.server.start();
-      console.log(`Server running at: ${this.server.info.uri}`);
+      Logger.info(`Server running at: ${this.server.info.uri}`);
     } catch (err) {
-      console.log(`Hapi error: ${err.message}`);
+      Logger.error(`Hapi error: ${err.message}`);
     }
   }
 

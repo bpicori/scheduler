@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { Db, MongoClient } from 'mongodb';
 import { Event, IEvent } from '../event/Event';
+import Logger from '../Logger';
 import { IStore } from './IStore';
 import { Queue } from './Queue';
 
@@ -92,11 +93,11 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
       this.db = this.client.db(this.dbName);
       this.db.on('reconnect', this.onReconnect.bind(this));
       this.db.on('close', () => {
-        console.warn('Mongodb Disconnected');
+        Logger.warn('Mongodb Disconnected');
       });
       if (this.firstConnection) {
         this.firstConnection = false;
-        console.log('Mongodb Connected');
+        Logger.info('Mongodb Connected');
         return this.db;
       }
       await this.processQueue();
@@ -104,7 +105,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
       return this.db;
     } catch (err) {
       this.firstConnection = false;
-      console.warn('Cant connect to MongoDb');
+      Logger.error('Cant connect to MongoDb');
       setTimeout(this.connect.bind(this), 5000);
       return null;
     }
@@ -113,7 +114,7 @@ export class StoreEventsMongo extends EventEmitter implements IStore {
   private async onReconnect() {
     await this.processQueue();
     this.emit('syncEventManager', false);
-    console.log('Mongodb Reconnected');
+    Logger.info('Mongodb Reconnected');
   }
 
 }

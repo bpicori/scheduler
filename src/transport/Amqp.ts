@@ -9,11 +9,15 @@ export class Amqp implements ITransport {
     this.type = TransportType.AMQP;
     this.amqpConfigs = configs;
   }
-  public async publish(): Promise<any> {
-    const conn = await ConnectionsAmqp.getConnection(this.amqpConfigs.rabbitUri);
-    const channel = await conn.createChannel();
-    const content = Buffer.from(JSON.stringify(this.amqpConfigs.payload));
-    await channel.publish(this.amqpConfigs.exchange, this.amqpConfigs.routingKey, content);
+  public async fire(): Promise<any> {
+    try {
+      const conn = await ConnectionsAmqp.getConnection(this.amqpConfigs.rabbitUri);
+      const channel = await conn.createChannel();
+      const content = Buffer.from(JSON.stringify(this.amqpConfigs.payload));
+      await channel.publish(this.amqpConfigs.exchange, this.amqpConfigs.routingKey, content);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   public getConfigs(): IAmqpConfigs {

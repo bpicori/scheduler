@@ -1,29 +1,29 @@
-import { assert} from 'chai';
+import { assert } from 'chai';
 import 'mocha';
-import {Event} from '../src/event/Event';
+import { Event } from '../src/event/Event';
 import EventManager from '../src/event/EventManager';
-import {StoreEventsMongo} from '../src/store/StoreEventsMongo';
-import {Http} from '../src/transport/Http';
-const delay = (time: number) => (result: any) => new Promise((resolve) => setTimeout(() => resolve(result), time));
+import { StoreEventsMongo } from '../src/store/StoreEventsMongo';
+import { Http } from '../src/transport/Http';
+// const delay = (time: number) => (result: any) => new Promise((resolve) => setTimeout(() => resolve(result), time));
 
 function generateRandomEvents(numberOfEvents: number, scheduler: EventManager): void {
-    const now = Math.round(Date.now() / 1000);
-    for (let i = 1; i <= numberOfEvents; i++) {
+  const now = Math.round(Date.now() / 1000);
+  for (let i = 1; i <= numberOfEvents; i += 1) {
         // scheduler.addEvent(new Event(`event${i}`, now + i, false, 0,  new Http()));
-    }
+  }
 }
 
 describe('Event Manager Test', () => {
-    const store = new StoreEventsMongo({ mongoUrl: 'mongodb://localhost:27017', dbName: 'events' });
-    const scheduler = new EventManager(store);
-    beforeEach(async () => {
-        scheduler.empty();
-        scheduler.stop();
-    });
-    afterEach(async () => {
-        scheduler.empty();
-        scheduler.stop();
-    });
+  const store = new StoreEventsMongo({ mongoUrl: 'mongodb://localhost:27017', dbName: 'events' });
+  const scheduler = new EventManager(store);
+  beforeEach(async () => {
+    scheduler.empty();
+    scheduler.stop();
+  });
+  afterEach(async () => {
+    scheduler.empty();
+    scheduler.stop();
+  });
     // it('should add event and returns an Event object', () => {
     //   const event = new Event('event1',  1234, false, 0,  new Http() );
     //   scheduler.addEvent(event);

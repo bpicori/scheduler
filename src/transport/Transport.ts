@@ -10,6 +10,6 @@ export interface ITransportConfig extends AxiosRequestConfig, IAmqpConfigs {}
 
 export interface ITransport {
   type: TransportType;
-  publish(): Promise<any>;
+  fire(): Promise<any>;
   getConfigs(): AxiosRequestConfig | IAmqpConfigs;
 }

@@ -1,13 +1,11 @@
 import { EventEmitter } from 'events';
 import { clearInterval } from 'timers';
+import Logger from '../Logger';
 import { StoreEventsMongo } from '../store/StoreEventsMongo';
-import { Event, IEvent, StatusEvent } from './Event';
+import { Event, IEvent } from './Event';
 
-export default class EventManager extends EventEmitter {
+export class EventManager extends EventEmitter {
 
-  get byId(): Map<string, IEvent> {
-    return this._byId;
-  }
   private _byId: Map<string, IEvent>;
   private _byTimestamp: Map<number, Map<string, IEvent>>;
 
@@ -131,6 +129,7 @@ export default class EventManager extends EventEmitter {
    * Sync events with eventStore
    */
   public async sync(connect: boolean = true) {
+    Logger.info('Scheduler synced with store');
     if (connect) {
       await this._eventStore.connect();
     }
@@ -150,6 +149,7 @@ export default class EventManager extends EventEmitter {
    * Start Event Manager
    */
   public async start() {
+    Logger.info('Scheduler Started');
     await this.sync();
     this.interval = setInterval(this.eventChecker.bind(this), 1000);
   }
@@ -158,6 +158,7 @@ export default class EventManager extends EventEmitter {
    * Stop EventManager
    */
   public stop() {
+    Logger.info('Scheduler Stopped');
     clearInterval(this.interval);
   }
 
@@ -181,7 +182,7 @@ export default class EventManager extends EventEmitter {
     }
   }
   private async executeEvent(event: IEvent) {
-    console.log(`Fired event: ${event.name}`);
-    await event.transport.publish();
+    Logger.info(`Fired event: ${event.name} at: ${new Date()}`);
+    await event.transport.fire();
   }
 }
