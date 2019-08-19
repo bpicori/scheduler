@@ -3,7 +3,7 @@
  */
 import * as Hapi from 'hapi';
 import { EventManager } from '../event/EventManager';
-import  Logger from '../Logger';
+import Logger from '../Logger';
 import { EventController } from './EventController';
 
 export class Server {

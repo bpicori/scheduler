@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import 'mocha';
 import { Event } from '../src/event/Event';
-import EventManager from '../src/event/EventManager';
+import { EventManager } from '../src/event/EventManager';
 import { StoreEventsMongo } from '../src/store/StoreEventsMongo';
-import { Http } from '../src/transport/Http';
+
 // const delay = (time: number) => (result: any) => new Promise((resolve) => setTimeout(() => resolve(result), time));
 
 function generateRandomEvents(numberOfEvents: number, scheduler: EventManager): void {

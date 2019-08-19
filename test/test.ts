@@ -14,4 +14,4 @@ async function main() {
   await scheduler.start();
 }
 
-main();
+main().catch(err => console.log(err));

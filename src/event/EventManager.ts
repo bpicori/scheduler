@@ -129,7 +129,6 @@ export class EventManager extends EventEmitter {
    * Sync events with eventStore
    */
   public async sync(connect: boolean = true) {
-    Logger.info('Scheduler synced with store');
     if (connect) {
       await this._eventStore.connect();
     }
@@ -143,6 +142,7 @@ export class EventManager extends EventEmitter {
       }
       this.addEvent(Event.deserialize(event), false);
     }
+    Logger.info('Scheduler synced with store');
   }
 
   /**
@@ -181,6 +181,11 @@ export class EventManager extends EventEmitter {
       this._byTimestamp.delete(now);
     }
   }
+
+  /**
+   * Fire event
+   * @param event
+   */
   private async executeEvent(event: IEvent) {
     Logger.info(`Fired event: ${event.name} at: ${new Date()}`);
     await event.transport.fire();
