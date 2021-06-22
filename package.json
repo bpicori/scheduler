@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "amqplib": "^0.5.3",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "hapi": "^18.1.0",
     "mongodb": "^3.1.13",
     "uuid": "^3.3.2",
